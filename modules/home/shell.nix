@@ -193,10 +193,14 @@
             else
               unset AWS_CONFIG_FILE
             fi
+            # Auto-set KUBECONFIG if TF_AWS_REPO has one
+            if [ -n "$TF_AWS_REPO" ] && [ -f "$TF_AWS_REPO/.kube/config" ]; then
+              export KUBECONFIG="$TF_AWS_REPO/.kube/config"
+            fi
           fi
           echo "AWS_PROFILE=''${AWS_PROFILE:-<unset>}  AWS_REGION=''${AWS_REGION:-<unset>}  AWS_CONFIG_FILE=''${AWS_CONFIG_FILE:-<default>}"
         }
-        awsx()        { unset AWS_PROFILE AWS_DEFAULT_PROFILE AWS_REGION AWS_DEFAULT_REGION AWS_CONFIG_FILE; echo "AWS env cleared"; }
+        awsx()        { unset AWS_PROFILE AWS_DEFAULT_PROFILE AWS_REGION AWS_DEFAULT_REGION AWS_CONFIG_FILE KUBECONFIG; echo "AWS env cleared"; }
         awsprofiles() { _aws_profiles; }
         awswho()      { aws sts get-caller-identity; }
         awsregion()   { [ -n "$1" ] && export AWS_REGION="$1" AWS_DEFAULT_REGION="$1"; echo "AWS_REGION=''${AWS_REGION:-<unset>}"; }
