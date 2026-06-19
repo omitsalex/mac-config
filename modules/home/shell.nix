@@ -128,11 +128,44 @@
               | sed -E 's/.*"([^"]+)".*/\1/'
           } | sed '/^$/d' | sort -u
         }
+        # Resolve the region for a given profile from all known AWS config files
+        # (TF_AWS_REPO/.aws/config first, then ~/.aws/config).
+        _aws_profile_region() {
+          local p="$1" cfg region
+          for cfg in \
+            "''${TF_AWS_REPO:+$TF_AWS_REPO/.aws/config}" \
+            "$HOME/.aws/config"; do
+            [ -n "$cfg" ] && [ -f "$cfg" ] || continue
+            region=$(awk -v p="$p" '
+              /^\[profile / { cur = $0; sub(/^\[profile[[:space:]]+/, "", cur); sub(/\].*/, "", cur) }
+              cur == p && /^[[:space:]]*region[[:space:]]*=/ { sub(/.*=[[:space:]]*/, ""); print; exit }
+            ' "$cfg")
+            [ -n "$region" ] && { echo "$region"; return; }
+          done
+        }
+        # List profiles with their regions (tab-separated) for fzf display
+        _aws_profiles_with_region() {
+          _aws_profiles | while IFS= read -r p; do
+            local r; r=$(_aws_profile_region "$p")
+            printf '%s\t%s\n' "$p" "''${r:-(no region)}"
+          done
+        }
         awsp() {                       # awsp [profile]  (fzf over aws + terraform profiles)
           local p="$1"
-          [ -z "$p" ] && command -v fzf >/dev/null 2>&1 && p=$(_aws_profiles | fzf --prompt='aws profile> ')
-          [ -n "$p" ] && export AWS_PROFILE="$p"
-          echo "AWS_PROFILE=''${AWS_PROFILE:-<unset>}"
+          if [ -z "$p" ] && command -v fzf >/dev/null 2>&1; then
+            p=$(_aws_profiles_with_region \
+              | column -t -s $'\t' \
+              | fzf --prompt='aws profile> ' \
+              | awk '{print $1}')
+          fi
+          if [ -n "$p" ]; then
+            export AWS_PROFILE="$p"
+            local r; r=$(_aws_profile_region "$p")
+            if [ -n "$r" ]; then
+              export AWS_REGION="$r" AWS_DEFAULT_REGION="$r"
+            fi
+          fi
+          echo "AWS_PROFILE=''${AWS_PROFILE:-<unset>}  AWS_REGION=''${AWS_REGION:-<unset>}"
         }
         awsx()        { unset AWS_PROFILE AWS_DEFAULT_PROFILE; echo "AWS profile cleared"; }
         awsprofiles() { _aws_profiles; }
