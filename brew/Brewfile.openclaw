@@ -1,0 +1,6 @@
+# =============================================================================
+# Brewfile.openclaw — OpenClaw profile additions
+# =============================================================================
+# No iCloud, no AppStore, minimal extras
+
+# No additional casks or MAS apps

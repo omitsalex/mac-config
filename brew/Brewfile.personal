@@ -1,0 +1,17 @@
+# =============================================================================
+# Brewfile.personal — Personal profile additions
+# =============================================================================
+# iCloud available, full AppStore access, personal licenses
+
+cask "1password"
+cask "spotify"
+cask "telegram"
+cask "obsidian"
+cask "chatgpt"
+cask "claude"
+cask "zoom"           # work machines get Zoom from MDM; personal installs via brew
+
+# Mac App Store
+mas "1Password for Safari", id: 1569813296
+mas "AdBlock Pro", id: 1018301773
+mas "Magnet", id: 441258766

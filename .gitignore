@@ -1,0 +1,84 @@
+# =============================================================================
+# .gitignore — Prevent secrets and build artifacts from being committed
+# =============================================================================
+
+# Nix build results
+result
+result-*
+**/result
+**/result-*
+
+# Nix direnv
+.direnv
+
+# Nix store paths
+/nix/store
+
+# Darwin system state
+/private/var/db/darwin-rebuild.list
+
+# =============================================================================
+# SECRETS — NEVER commit these
+# =============================================================================
+
+# SOPS age private keys
+**/keys.txt
+**/age/keys.txt
+
+# Decrypted secrets
+secrets/*.yaml
+!secrets/secrets.yaml.example
+
+# GPG private keys (if accidentally placed in repo)
+*.asc
+*.gpg
+*.key
+gpg-keys/
+
+# Environment files with secrets
+.env
+.env.*
+!.env.example
+
+# SSH keys
+id_rsa
+id_ed25519
+*.pem
+
+# AWS / cloud credentials
+credentials
+credentials.json
+.aws/credentials
+.okta-aws
+
+# VPN configs with credentials
+.fortivpn.conf
+
+# =============================================================================
+# macOS
+# =============================================================================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# iCloud sync artifacts
+mac-config
+mac-config *
+
+# =============================================================================
+# Editor / IDE
+# =============================================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# Temporary / local
+# =============================================================================
+.local-config.nix
+*.bak
+*.log
+*.tmp

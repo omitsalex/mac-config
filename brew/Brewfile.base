@@ -1,0 +1,95 @@
+# =============================================================================
+# Brewfile.base — Core packages shared across ALL profiles and modes
+# =============================================================================
+# This file is sourced by both Nix+Brew and Brew-only installations.
+# Profile-specific packages are in Brewfile.personal, Brewfile.work, Brewfile.openclaw.
+# =============================================================================
+
+# Taps
+tap "hashicorp/tap"
+tap "mongodb/brew"
+tap "smudge/smudge"
+
+# Shell enhancements
+brew "zsh-autosuggestions"
+brew "zsh-syntax-highlighting"
+brew "bash-completion"
+
+# macOS-specific tools
+brew "mas"
+brew "pinentry-mac"
+brew "smudge/smudge/nightlight"
+
+# Development environment managers
+brew "nvm"
+brew "pyenv"
+brew "rbenv"
+brew "tfenv"
+
+# Cloud / DevOps
+brew "awscli"
+brew "ansible"
+brew "argocd"
+brew "terragrunt"
+brew "terraformer"
+brew "hashicorp/tap/vault"
+
+# Kubernetes
+brew "kubernetes-cli"
+brew "helm"
+brew "helmfile"
+brew "kops"
+brew "kube-ps1"
+brew "stern"
+brew "krew"
+brew "aws-iam-authenticator"
+
+# Database
+brew "libpq"
+
+# Utilities
+brew "hugo"
+brew "iproute2mac"
+brew "archey4"
+brew "ncdu"
+
+# ===========================================================================
+# GUI Applications (casks) — universal
+# ===========================================================================
+cask "iterm2"
+cask "visual-studio-code"
+cask "docker-desktop"
+cask "postman"
+cask "alt-tab"
+cask "gpg-suite"
+cask "slack"
+cask "google-chrome"
+cask "firefox"
+cask "zen"
+cask "vlc"
+
+# ===========================================================================
+# VSCode Extensions
+# ===========================================================================
+# Core
+vscode "DavidAnson.vscode-markdownlint"
+vscode "eamodio.gitlens"
+vscode "EditorConfig.EditorConfig"
+vscode "usernamehw.errorlens"
+
+# Languages
+vscode "golang.go"
+vscode "ms-python.python"          # pulls pylance + debugpy automatically
+vscode "redhat.vscode-yaml"
+vscode "tamasfe.even-better-toml"
+
+# Infra / DevOps
+vscode "hashicorp.terraform"
+vscode "ms-azuretools.vscode-docker"
+vscode "ms-kubernetes-tools.vscode-kubernetes-tools"
+vscode "signageos.signageos-vscode-sops"
+vscode "github.vscode-github-actions"
+
+# Remote
+vscode "ms-vscode-remote.remote-containers"
+vscode "ms-vscode-remote.remote-ssh"

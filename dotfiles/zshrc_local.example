@@ -1,0 +1,26 @@
+# ~/.zshrc_local.example — copy to ~/.zshrc_local and fill in your real values.
+# This file is NOT tracked by the repo; keep company-specific names here only.
+# shell.nix sources ~/.zshrc_local automatically if it exists.
+
+# ── AWS ────────────────────────────────────────────────────────────────────
+# Default profile/region for new shells
+# export AWS_PROFILE="myorg-dev"
+# export AWS_REGION="us-east-1"
+#
+# Per-account shortcuts (use the generic awsp/oktalogin helpers under the hood)
+# alias aws-dev='awsp myorg-dev'
+# alias aws-stg='awsp myorg-staging'
+# alias aws-prod='awsp myorg-prod'
+# alias login-dev='oktalogin myorg-dev'
+
+# ── Kubernetes ─────────────────────────────────────────────────────────────
+# One-shot kubeconfig + context for each cluster (uses keks/kctx helpers)
+# alias k-dev='keks dev-eks us-east-1 && kctx arn:aws:eks:us-east-1:000000000000:cluster/dev-eks'
+# alias k-prod='keks prod-eks us-east-1'
+# alias kn-app='kns my-app-namespace'
+
+# ── Auth0 ──────────────────────────────────────────────────────────────────
+# alias a0-dev='a0use dev-tenant'
+# alias a0-prod='a0use prod-tenant'
+
+# ── Anything else machine-specific (paths, tokens via secret managers, etc.) ─

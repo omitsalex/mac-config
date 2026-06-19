@@ -1,0 +1,63 @@
+# =============================================================================
+# Brewfile.cli — CLI tools that Nix normally manages
+# =============================================================================
+# Only used in brew-only mode (--mode brew). When using Nix, these are
+# installed via environment.systemPackages in packages-full.nix.
+# =============================================================================
+
+# Essential CLI tools
+brew "vim"
+brew "curl"
+brew "wget"
+brew "git"
+brew "git-crypt"
+brew "coreutils"
+brew "ripgrep"
+brew "tree"
+brew "tmux"
+brew "fzf"
+brew "jq"
+brew "yq"
+brew "htop"
+brew "btop"
+brew "bat"
+brew "watch"
+brew "pwgen"
+brew "unzip"
+brew "p7zip"
+brew "pigz"
+brew "mosh"
+brew "zlib"
+
+# Network tools
+brew "nmap"
+brew "mtr"
+brew "openssl"
+brew "iperf3"
+brew "sshuttle"
+
+# Development tools
+brew "direnv"
+brew "neovim"
+brew "starship"
+
+# Modern productivity tools
+brew "eza"
+brew "zoxide"
+brew "fd"
+brew "git-delta"
+brew "dust"
+brew "tealdeer"
+brew "gh"
+brew "atuin"
+
+# Infrastructure tools
+brew "sops"
+brew "age"
+brew "envconsul"
+
+# Container tools
+brew "colima"
+
+# Git tools
+brew "lazygit"

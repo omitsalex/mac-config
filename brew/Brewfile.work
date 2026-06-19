@@ -1,0 +1,37 @@
+# =============================================================================
+# Brewfile.work — Work profile additions
+# =============================================================================
+# No iCloud, no personal AppStore, MDM-managed machine.
+# CLI tools shared across profiles live in Brewfile.base / Nix; this file holds
+# work-specific tooling and corporate apps.
+
+# --- Work CLI tools ---
+tap "auth0/auth0-cli"
+brew "git-lfs"
+brew "okta-awscli"            # Okta -> AWS CLI auth
+brew "auth0"                  # Auth0 CLI (tenant management)
+brew "eksctl"
+brew "glooctl"
+brew "gomplate"
+brew "gopass"
+brew "hashicorp/tap/packer"   # hashicorp/tap is tapped in Brewfile.base
+brew "velero"
+brew "pidof"
+brew "ipcalc"
+
+# --- Work GUI apps (casks) ---
+cask "1password"
+cask "spotify"
+cask "mongodb-compass"
+cask "microsoft-edge"
+cask "choosy"
+
+# --- IDEs ---
+cask "datagrip"        # JetBrains SQL/database IDE
+cask "devin-desktop"   # Devin agentic IDE
+
+# --- VPN ---
+cask "pritunl"
+cask "tailscale-app"
+
+# No MAS apps — managed by IT / MDM
