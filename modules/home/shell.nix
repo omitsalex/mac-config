@@ -150,6 +150,20 @@
             [ -n "$region" ] && { echo "$region"; return; }
           done
         }
+        # Find which config file contains a profile (for AWS_CONFIG_FILE).
+        _aws_profile_config_file() {
+          local p="$1" cfg
+          for cfg in \
+            "''${TF_AWS_REPO:+$TF_AWS_REPO/.aws/config}" \
+            "$HOME/.aws/config"; do
+            [ -n "$cfg" ] && [ -f "$cfg" ] || continue
+            awk -v p="$p" '
+              /^\[profile / { cur = $0; sub(/^\[profile[[:space:]]+/, "", cur); sub(/\].*/, "", cur) }
+              cur == p { found=1; exit }
+              END { exit !found }
+            ' "$cfg" && { echo "$cfg"; return; }
+          done
+        }
         # List profiles with their regions (tab-separated) for fzf display
         _aws_profiles_with_region() {
           local profiles p r
@@ -172,10 +186,17 @@
             local r; r=$(_aws_profile_region "$p")
             r="''${r:-us-east-1}"
             export AWS_REGION="$r" AWS_DEFAULT_REGION="$r"
+            # Point AWS CLI to the config file that contains this profile
+            local cf; cf=$(_aws_profile_config_file "$p")
+            if [ -n "$cf" ]; then
+              export AWS_CONFIG_FILE="$cf"
+            else
+              unset AWS_CONFIG_FILE
+            fi
           fi
-          echo "AWS_PROFILE=''${AWS_PROFILE:-<unset>}  AWS_REGION=''${AWS_REGION:-<unset>}"
+          echo "AWS_PROFILE=''${AWS_PROFILE:-<unset>}  AWS_REGION=''${AWS_REGION:-<unset>}  AWS_CONFIG_FILE=''${AWS_CONFIG_FILE:-<default>}"
         }
-        awsx()        { unset AWS_PROFILE AWS_DEFAULT_PROFILE; echo "AWS profile cleared"; }
+        awsx()        { unset AWS_PROFILE AWS_DEFAULT_PROFILE AWS_REGION AWS_DEFAULT_REGION AWS_CONFIG_FILE; echo "AWS env cleared"; }
         awsprofiles() { _aws_profiles; }
         awswho()      { aws sts get-caller-identity; }
         awsregion()   { [ -n "$1" ] && export AWS_REGION="$1" AWS_DEFAULT_REGION="$1"; echo "AWS_REGION=''${AWS_REGION:-<unset>}"; }
