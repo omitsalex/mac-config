@@ -208,9 +208,16 @@
         oktalogin()   { command -v okta-awscli >/dev/null 2>&1 && okta-awscli -p "''${1:-$AWS_PROFILE}"; }
 
         # Kubernetes context / namespace
+        # Ensure KUBECONFIG is set — fall back to $TF_AWS_REPO/.kube/config
+        _ensure_kubeconfig() {
+          if [ -z "$KUBECONFIG" ] && [ -n "$TF_AWS_REPO" ] && [ -f "$TF_AWS_REPO/.kube/config" ]; then
+            export KUBECONFIG="$TF_AWS_REPO/.kube/config"
+          fi
+        }
         # Extract profile + region for all kubeconfig users via python (JSON parsing).
         # Output: context<tab>profile<tab>region per line.
         _kube_contexts_with_info() {
+          _ensure_kubeconfig
           kubectl config view -o json 2>/dev/null | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
@@ -230,6 +237,7 @@ for c in d.get('contexts',[]):
 " 2>/dev/null
         }
         kctx() {                       # kctx [context]  (fzf over kubeconfig contexts)
+          _ensure_kubeconfig
           local ctx="$1"
           if [ -z "$ctx" ] && command -v fzf >/dev/null 2>&1; then
             ctx=$(_kube_contexts_with_info \
@@ -255,7 +263,7 @@ for c in d.get('contexts',[]):
             fi
           fi
         }
-        kns()  { if [ -n "$1" ]; then kubectl config set-context --current --namespace="$1" && echo "namespace=$1"; else kubectl get ns; fi; }
+        kns()  { _ensure_kubeconfig; if [ -n "$1" ]; then kubectl config set-context --current --namespace="$1" && echo "namespace=$1"; else kubectl get ns; fi; }
         # EKS clusters: live (aws eks list-clusters) ∪ names found in $TF_AWS_REPO
         _eks_clusters() {
           {
