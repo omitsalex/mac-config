@@ -12,6 +12,7 @@
 {
   config,
   osConfig,
+  pkgs,
   lib,
   ...
 }: let
@@ -48,7 +49,47 @@
     "pets/mac-config"
     "pets/pp"
   ];
+
+  # obsidian-sync script — push/pull vault archives to/from S3
+  obsidianSync = pkgs.writeShellScriptBin "obsidian-sync" ''
+    set -euo pipefail
+
+    usage() { echo "Usage: obsidian-sync <push|pull> <s3-bucket> [vault-name]"; exit 1; }
+
+    ACTION="''${1:-}"; [ -z "$ACTION" ] && usage
+    BUCKET="''${2:-}"; [ -z "$BUCKET" ] && usage
+    VAULT="''${3:-work}"
+    VAULT_DIR="${vaultPath}/$VAULT"
+    S3_PREFIX="s3://''${BUCKET}/obsidian"
+
+    case "$ACTION" in
+      push)
+        [ -d "$VAULT_DIR" ] || { echo "vault not found: $VAULT_DIR"; exit 1; }
+        ARCHIVE="obsidian-''${VAULT}-$(date +%Y%m%d-%H%M%S).tar.gz"
+        tar --exclude='.obsidian' --exclude='.DS_Store' --exclude='.trash' \
+          -czf "/tmp/''${ARCHIVE}" -C "$(dirname "$VAULT_DIR")" "$VAULT"
+        aws s3 cp "/tmp/''${ARCHIVE}" "''${S3_PREFIX}/''${ARCHIVE}"
+        echo "pushed ''${S3_PREFIX}/''${ARCHIVE} ($(du -h "/tmp/''${ARCHIVE}" | cut -f1))"
+        rm -f "/tmp/''${ARCHIVE}"
+        ;;
+      pull)
+        LATEST=$(aws s3 ls "''${S3_PREFIX}/obsidian-''${VAULT}-" \
+          | sort | tail -1 | awk '{print $NF}')
+        [ -z "$LATEST" ] && { echo "no archive found in ''${S3_PREFIX}/"; exit 1; }
+        aws s3 cp "''${S3_PREFIX}/''${LATEST}" "/tmp/obsidian-pull.tar.gz"
+        mkdir -p "$(dirname "$VAULT_DIR")"
+        tar xzf "/tmp/obsidian-pull.tar.gz" -C "$(dirname "$VAULT_DIR")"
+        echo "pulled ''${S3_PREFIX}/''${LATEST} → $VAULT_DIR/"
+        rm -f "/tmp/obsidian-pull.tar.gz"
+        ;;
+      *)
+        usage
+        ;;
+    esac
+  '';
 in {
+  home.packages = lib.mkIf cfg.enableObsidian [obsidianSync];
+
   home.activation.setupObsidian = lib.mkIf cfg.enableObsidian (
     lib.hm.dag.entryAfter ["writeBoundary"] ''
       # Claude memory + templates
