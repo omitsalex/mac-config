@@ -204,8 +204,16 @@
         awsprofiles() { _aws_profiles; }
         awswho()      { aws sts get-caller-identity; }
         awsregion()   { [ -n "$1" ] && export AWS_REGION="$1" AWS_DEFAULT_REGION="$1"; echo "AWS_REGION=''${AWS_REGION:-<unset>}"; }
-        # Okta → AWS auth (okta-awscli); defaults to current AWS_PROFILE
-        oktalogin()   { command -v okta-awscli >/dev/null 2>&1 && okta-awscli -p "''${1:-$AWS_PROFILE}"; }
+        # Okta → AWS auth (okta-awscli); defaults to current AWS_PROFILE.
+        # Auto-symlinks ~/.okta-aws from $TF_AWS_REPO/.okta-aws if not present.
+        oktalogin() {
+          command -v okta-awscli >/dev/null 2>&1 || { echo "okta-awscli not found"; return 1; }
+          if [ ! -e ~/.okta-aws ] && [ -n "$TF_AWS_REPO" ] && [ -f "$TF_AWS_REPO/.okta-aws" ]; then
+            ln -s "$TF_AWS_REPO/.okta-aws" ~/.okta-aws
+            echo "symlinked ~/.okta-aws → $TF_AWS_REPO/.okta-aws"
+          fi
+          okta-awscli -p "''${1:-$AWS_PROFILE}"
+        }
 
         # Kubernetes context / namespace
         # Ensure KUBECONFIG is set — fall back to $TF_AWS_REPO/.kube/config
