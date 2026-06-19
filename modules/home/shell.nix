@@ -204,17 +204,28 @@
         awsprofiles() { _aws_profiles; }
         awswho()      { aws sts get-caller-identity; }
         awsregion()   { [ -n "$1" ] && export AWS_REGION="$1" AWS_DEFAULT_REGION="$1"; echo "AWS_REGION=''${AWS_REGION:-<unset>}"; }
-        # Okta → AWS auth (okta-awscli); defaults to current AWS_PROFILE.
-        # -o selects the [section] in ~/.okta-aws (which has its own profile= for creds output).
+        # Okta → AWS auth (okta-awscli) with fzf picker over ~/.okta-aws sections.
         # Auto-symlinks ~/.okta-aws from $TF_AWS_REPO/.okta-aws if not present.
+        _okta_profiles() {
+          local f="$HOME/.okta-aws"
+          [ ! -e "$f" ] && [ -n "$TF_AWS_REPO" ] && f="$TF_AWS_REPO/.okta-aws"
+          [ -f "$f" ] && awk -F'[][]' '/^\[/ {print $2}' "$f"
+        }
         oktalogin() {
           command -v okta-awscli >/dev/null 2>&1 || { echo "okta-awscli not found"; return 1; }
           if [ ! -e ~/.okta-aws ] && [ -n "$TF_AWS_REPO" ] && [ -f "$TF_AWS_REPO/.okta-aws" ]; then
             ln -s "$TF_AWS_REPO/.okta-aws" ~/.okta-aws
             echo "symlinked ~/.okta-aws → $TF_AWS_REPO/.okta-aws"
           fi
-          local p="''${1:-$AWS_PROFILE}"
+          local p="$1"
+          if [ -z "$p" ] && command -v fzf >/dev/null 2>&1; then
+            p=$(_okta_profiles | fzf --prompt='okta profile> ')
+          fi
+          [ -z "$p" ] && { echo "no profile selected"; return 1; }
           okta-awscli -v -o "$p"
+          export AWS_PROFILE="$p"
+          export AWS_REGION="''${AWS_REGION:-us-east-1}" AWS_DEFAULT_REGION="''${AWS_REGION:-us-east-1}"
+          echo "AWS_PROFILE=$p  AWS_REGION=''${AWS_REGION}"
         }
 
         # Kubernetes context / namespace
