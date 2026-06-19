@@ -1,6 +1,12 @@
 # Project skeleton
 
-When creating a new project folder, scaffold this structure:
+When creating a new project folder, place it under the correct category:
+- `work/{repo}/` — work/company repos
+- `pets/{repo}/` — personal side projects
+- `personal/{topic}/` — personal life topics
+- `openclaw/{sub}/` — openclaw sub-projects
+
+Then scaffold this structure:
 
 ```
 <project>/

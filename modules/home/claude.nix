@@ -19,11 +19,11 @@
       Project memory lives in the Obsidian vault at:
       `${vaultPath}`
 
-      Structure: `Projects/{repo-name}/` with `_index.md`, `architecture.md`, `conventions.md`,
+      Layout: `work/{repo}/`, `pets/{repo}/`, `personal/{topic}/`, `openclaw/{sub}/`.
+      Each project has: `_index.md`, `architecture.md`, `conventions.md`,
       `research/`, `decisions/`, `bugs/`, `patterns/`, `todo.md`, `sessions/`.
 
       Cross-project index: `claude/memory/MEMORY.md`
-      Project contexts: `claude/projects/<project>/context.md`
 
       At session start, if the project folder exists, read `_index.md` for orientation.
       Load other files on demand based on the task at hand.
