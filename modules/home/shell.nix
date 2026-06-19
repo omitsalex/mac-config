@@ -208,7 +208,53 @@
         oktalogin()   { command -v okta-awscli >/dev/null 2>&1 && okta-awscli -p "''${1:-$AWS_PROFILE}"; }
 
         # Kubernetes context / namespace
-        kctx() { if [ -n "$1" ]; then kubectl config use-context "$1"; else kubectl config get-contexts; fi; }
+        # Extract profile + region for all kubeconfig users via python (JSON parsing).
+        # Output: context<tab>profile<tab>region per line.
+        _kube_contexts_with_info() {
+          kubectl config view -o json 2>/dev/null | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+users = {u['name']: u.get('user',{}).get('exec',{}) for u in d.get('users',[])}
+for c in d.get('contexts',[]):
+    cn = c['name']
+    un = c.get('context',{}).get('user','''')
+    ex = users.get(un,{})
+    env = {e['name']: e['value'] for e in ex.get('env',[])}
+    profile = env.get('AWS_PROFILE','-')
+    args = ex.get('args',[])
+    region = 'us-east-1'
+    for i, a in enumerate(args):
+        if a == '--region' and i + 1 < len(args):
+            region = args[i + 1]
+    print(f'{cn}\t{profile}\t{region}')
+" 2>/dev/null
+        }
+        kctx() {                       # kctx [context]  (fzf over kubeconfig contexts)
+          local ctx="$1"
+          if [ -z "$ctx" ] && command -v fzf >/dev/null 2>&1; then
+            ctx=$(_kube_contexts_with_info \
+              | column -t -s $'\t' \
+              | fzf --prompt='k8s context> ' \
+                    --header='CONTEXT                        PROFILE                REGION' \
+              | awk '{print $1}')
+          fi
+          if [ -n "$ctx" ]; then
+            kubectl config use-context "$ctx"
+            # Auto-set AWS env to match the context's profile
+            local info profile region
+            info=$(_kube_contexts_with_info | awk -F'\t' -v c="$ctx" '$1==c {print $2"\t"$3}')
+            profile="''${info%%	*}"
+            region="''${info##*	}"
+            if [ -n "$profile" ] && [ "$profile" != "-" ]; then
+              export AWS_PROFILE="$profile"
+              region="''${region:-us-east-1}"
+              export AWS_REGION="$region" AWS_DEFAULT_REGION="$region"
+              local cf; cf=$(_aws_profile_config_file "$profile")
+              [ -n "$cf" ] && export AWS_CONFIG_FILE="$cf" || unset AWS_CONFIG_FILE
+              echo "AWS_PROFILE=$profile  AWS_REGION=$region  AWS_CONFIG_FILE=''${AWS_CONFIG_FILE:-<default>}"
+            fi
+          fi
+        }
         kns()  { if [ -n "$1" ]; then kubectl config set-context --current --namespace="$1" && echo "namespace=$1"; else kubectl get ns; fi; }
         # EKS clusters: live (aws eks list-clusters) ∪ names found in $TF_AWS_REPO
         _eks_clusters() {
