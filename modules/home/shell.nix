@@ -114,17 +114,28 @@
         # ── AWS / Kubernetes / Auth0 helpers ──────────────────────────────
         # Generic & parameterized — NO company names here. Put your real
         # profile / cluster / tenant names in ~/.zshrc_local (untracked).
+        #
+        # Set TF_AWS_REPO in ~/.zshrc_local to your terraform repo to auto-
+        # discover AWS profiles + EKS clusters defined there, e.g.:
+        #   export TF_AWS_REPO="$HOME/Projects/<org>/terraform"
 
-        # AWS profile switching
-        awsp() {                       # awsp [profile]  (fzf picker if no arg)
-          if [ -n "$1" ]; then export AWS_PROFILE="$1"
-          elif command -v fzf >/dev/null 2>&1; then
-            local p; p=$(aws configure list-profiles 2>/dev/null | fzf) && export AWS_PROFILE="$p"
-          fi
+        # AWS profiles: ~/.aws/config ∪ profile="…" found in $TF_AWS_REPO
+        _aws_profiles() {
+          {
+            aws configure list-profiles 2>/dev/null
+            [ -n "$TF_AWS_REPO" ] && [ -d "$TF_AWS_REPO" ] && \
+              grep -rhoE 'profile[[:space:]]*=[[:space:]]*"[^"]+"' "$TF_AWS_REPO" 2>/dev/null \
+              | sed -E 's/.*"([^"]+)".*/\1/'
+          } | sed '/^$/d' | sort -u
+        }
+        awsp() {                       # awsp [profile]  (fzf over aws + terraform profiles)
+          local p="$1"
+          [ -z "$p" ] && command -v fzf >/dev/null 2>&1 && p=$(_aws_profiles | fzf --prompt='aws profile> ')
+          [ -n "$p" ] && export AWS_PROFILE="$p"
           echo "AWS_PROFILE=''${AWS_PROFILE:-<unset>}"
         }
         awsx()        { unset AWS_PROFILE AWS_DEFAULT_PROFILE; echo "AWS profile cleared"; }
-        awsprofiles() { aws configure list-profiles 2>/dev/null; }
+        awsprofiles() { _aws_profiles; }
         awswho()      { aws sts get-caller-identity; }
         awsregion()   { [ -n "$1" ] && export AWS_REGION="$1" AWS_DEFAULT_REGION="$1"; echo "AWS_REGION=''${AWS_REGION:-<unset>}"; }
         # Okta → AWS auth (okta-awscli); defaults to current AWS_PROFILE
@@ -133,8 +144,22 @@
         # Kubernetes context / namespace
         kctx() { if [ -n "$1" ]; then kubectl config use-context "$1"; else kubectl config get-contexts; fi; }
         kns()  { if [ -n "$1" ]; then kubectl config set-context --current --namespace="$1" && echo "namespace=$1"; else kubectl get ns; fi; }
-        keks() { aws eks update-kubeconfig --name "$1" ''${2:+--region "$2"}; }   # keks <cluster> [region]
-        kclusters() { aws eks list-clusters ''${1:+--region "$1"} --query 'clusters' --output text; }
+        # EKS clusters: live (aws eks list-clusters) ∪ names found in $TF_AWS_REPO
+        _eks_clusters() {
+          {
+            aws eks list-clusters --query 'clusters[]' --output text 2>/dev/null | tr '\t' '\n'
+            [ -n "$TF_AWS_REPO" ] && [ -d "$TF_AWS_REPO" ] && \
+              grep -rhoE '(cluster_name|cluster-name|eks_cluster_name)[[:space:]]*=[[:space:]]*"[^"]+"' "$TF_AWS_REPO" 2>/dev/null \
+              | sed -E 's/.*"([^"]+)".*/\1/'
+          } | sed '/^$/d' | sort -u
+        }
+        keksp() {                      # keksp [cluster] [region]  (fzf over live + terraform clusters)
+          local c="$1" region="$2"
+          [ -z "$c" ] && command -v fzf >/dev/null 2>&1 && c=$(_eks_clusters | fzf --prompt='eks cluster> ')
+          [ -n "$c" ] && aws eks update-kubeconfig --name "$c" ''${region:+--region "$region"}
+        }
+        keks()      { aws eks update-kubeconfig --name "$1" ''${2:+--region "$2"}; }   # keks <cluster> [region]
+        kclusters() { _eks_clusters; }
 
         # Auth0 tenant switching (auth0 CLI)
         a0use() {                      # a0use [tenant]  (fzf picker if no arg)

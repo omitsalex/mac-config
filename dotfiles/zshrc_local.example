@@ -3,6 +3,10 @@
 # shell.nix sources ~/.zshrc_local automatically if it exists.
 
 # ── AWS ────────────────────────────────────────────────────────────────────
+# Point the helpers at your terraform repo to auto-discover AWS profiles + EKS
+# clusters (used by awsp / awsprofiles / keksp / kclusters fzf pickers):
+# export TF_AWS_REPO="$HOME/Projects/<org>/terraform"
+#
 # Default profile/region for new shells
 # export AWS_PROFILE="myorg-dev"
 # export AWS_REGION="us-east-1"
