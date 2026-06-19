@@ -21,7 +21,6 @@
         "docker-compose"
         "kubectl"
         "terraform"
-        "fzf"
         "history"
         "python"
         "tmux"
@@ -98,14 +97,8 @@
         setopt HIST_SAVE_NO_DUPS
 
         # Initialize zoxide (smart cd)
-        if command -v zoxide &> /dev/null; then
-          eval "$(zoxide init zsh)"
-        fi
-
-        # Initialize direnv
-        if command -v direnv &> /dev/null; then
-          eval "$(direnv hook zsh)"
-        fi
+        # fzf, zoxide and direnv zsh integration are provided by their
+        # home-manager modules (fzf.nix / direnv.nix) — no manual eval here.
 
         # Key bindings
         bindkey '^[[A' up-line-or-search

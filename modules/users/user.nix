@@ -15,6 +15,7 @@ in {
     ../home/neovim.nix
     ../home/tmux.nix
     ../home/direnv.nix
+    ../home/fzf.nix
     ../home/atuin.nix
     ../home/nodejs-fix.nix
     ../home/gpg.nix
