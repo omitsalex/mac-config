@@ -205,6 +205,7 @@
         awswho()      { aws sts get-caller-identity; }
         awsregion()   { [ -n "$1" ] && export AWS_REGION="$1" AWS_DEFAULT_REGION="$1"; echo "AWS_REGION=''${AWS_REGION:-<unset>}"; }
         # Okta → AWS auth (okta-awscli); defaults to current AWS_PROFILE.
+        # -o selects the [section] in ~/.okta-aws, -p writes credentials.
         # Auto-symlinks ~/.okta-aws from $TF_AWS_REPO/.okta-aws if not present.
         oktalogin() {
           command -v okta-awscli >/dev/null 2>&1 || { echo "okta-awscli not found"; return 1; }
@@ -212,7 +213,8 @@
             ln -s "$TF_AWS_REPO/.okta-aws" ~/.okta-aws
             echo "symlinked ~/.okta-aws → $TF_AWS_REPO/.okta-aws"
           fi
-          okta-awscli -p "''${1:-$AWS_PROFILE}"
+          local p="''${1:-$AWS_PROFILE}"
+          okta-awscli -o "$p" -p "$p"
         }
 
         # Kubernetes context / namespace
