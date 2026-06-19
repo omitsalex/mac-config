@@ -154,11 +154,11 @@
           } | sed '/^$/d' | sort -u
         }
         keksp() {                      # keksp [cluster] [region]  (fzf over live + terraform clusters)
-          local c="$1" region="$2"
+          local c="$1" region="''${2:-''${AWS_REGION:-us-east-1}}"
           [ -z "$c" ] && command -v fzf >/dev/null 2>&1 && c=$(_eks_clusters | fzf --prompt='eks cluster> ')
-          [ -n "$c" ] && aws eks update-kubeconfig --name "$c" ''${region:+--region "$region"}
+          [ -n "$c" ] && aws eks update-kubeconfig --name "$c" --region "$region"
         }
-        keks()      { aws eks update-kubeconfig --name "$1" ''${2:+--region "$2"}; }   # keks <cluster> [region]
+        keks()      { aws eks update-kubeconfig --name "$1" --region "''${2:-''${AWS_REGION:-us-east-1}}"; }   # keks <cluster> [region]
         kclusters() { _eks_clusters; }
 
         # Auth0 tenant switching (auth0 CLI)
