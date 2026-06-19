@@ -22,6 +22,7 @@ brew "ipcalc"
 # --- Work GUI apps (casks) ---
 cask "1password"
 cask "spotify"
+cask "obsidian"          # local knowledge vault (~/Documents/Obsidian)
 cask "mongodb-compass"
 cask "microsoft-edge"
 cask "choosy"

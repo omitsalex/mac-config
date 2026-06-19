@@ -42,8 +42,14 @@ in {
 
     enableObsidianMCP = lib.mkOption {
       type = lib.types.bool;
-      default = cfg.name == "personal";
+      default = cfg.name == "personal" || cfg.name == "work";
       description = "Whether Obsidian vault MCP server is enabled for AI tools.";
+    };
+
+    enableObsidian = lib.mkOption {
+      type = lib.types.bool;
+      default = cfg.name == "personal" || cfg.name == "work";
+      description = "Whether to install Obsidian and provision a local knowledge vault.";
     };
 
     enableFirewallHardening = lib.mkOption {

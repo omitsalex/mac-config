@@ -11,9 +11,12 @@
   dockerBin = "docker";
   npxBin = "${pkgs.nodejs}/bin/npx";
 
-  vaultPath = "${config.home.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs/Obsidian";
+  vaultPath =
+    if cfg.enableICloud
+    then "${config.home.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs/Obsidian"
+    else "${config.home.homeDirectory}/Documents/Obsidian";
 
-  # Obsidian vault MCP — only on personal profile
+  # Obsidian vault MCP — enabled on profiles with Obsidian (personal + work)
   obsidianMCP =
     if cfg.enableObsidianMCP
     then {

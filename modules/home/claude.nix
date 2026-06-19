@@ -6,10 +6,13 @@
   ...
 }: let
   cfg = osConfig.local.profile;
-  vaultPath = "${config.home.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs/Obsidian";
+  vaultPath =
+    if cfg.enableICloud
+    then "${config.home.homeDirectory}/Library/Mobile Documents/com~apple~CloudDocs/Obsidian"
+    else "${config.home.homeDirectory}/Documents/Obsidian";
 
   memoryBlock =
-    if cfg.enableICloud
+    if cfg.enableObsidian
     then ''
       # Memory
 
