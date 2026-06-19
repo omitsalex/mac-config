@@ -119,13 +119,20 @@
         # discover AWS profiles + EKS clusters defined there, e.g.:
         #   export TF_AWS_REPO="$HOME/Projects/<org>/terraform"
 
-        # AWS profiles: ~/.aws/config ∪ profile="…" found in $TF_AWS_REPO
+        # AWS profiles: ~/.aws/config ∪ $TF_AWS_REPO/.aws/config ∪ profile="…" in TF files
         _aws_profiles() {
           {
             aws configure list-profiles 2>/dev/null
-            [ -n "$TF_AWS_REPO" ] && [ -d "$TF_AWS_REPO" ] && \
-              grep -rhoE 'profile[[:space:]]*=[[:space:]]*"[^"]+"' "$TF_AWS_REPO" 2>/dev/null \
-              | sed -E 's/.*"([^"]+)".*/\1/'
+            if [ -n "$TF_AWS_REPO" ] && [ -d "$TF_AWS_REPO" ]; then
+              # INI-style [profile X] from repo .aws/config
+              [ -f "$TF_AWS_REPO/.aws/config" ] && \
+                awk '/^\[profile / { sub(/^\[profile[[:space:]]+/, ""); sub(/\].*/, ""); print }' \
+                  "$TF_AWS_REPO/.aws/config" 2>/dev/null
+              # HCL-style profile = "X" from .tf files
+              grep -rhoE 'profile[[:space:]]*=[[:space:]]*"[^"]+"' "$TF_AWS_REPO" \
+                --include='*.tf' --include='*.hcl' 2>/dev/null \
+                | sed -E 's/.*"([^"]+)".*/\1/'
+            fi
           } | sed '/^$/d' | sort -u
         }
         # Resolve the region for a given profile from all known AWS config files
@@ -149,7 +156,7 @@
           profiles=("''${(@f)$(_aws_profiles)}")
           for p in "''${profiles[@]}"; do
             r=$(_aws_profile_region "$p")
-            printf '%s\t%s\n' "$p" "''${r:-(no region)}"
+            printf '%s\t%s\n' "$p" "''${r:-us-east-1}"
           done
         }
         awsp() {                       # awsp [profile]  (fzf over aws + terraform profiles)
@@ -163,9 +170,8 @@
           if [ -n "$p" ]; then
             export AWS_PROFILE="$p"
             local r; r=$(_aws_profile_region "$p")
-            if [ -n "$r" ]; then
-              export AWS_REGION="$r" AWS_DEFAULT_REGION="$r"
-            fi
+            r="''${r:-us-east-1}"
+            export AWS_REGION="$r" AWS_DEFAULT_REGION="$r"
           fi
           echo "AWS_PROFILE=''${AWS_PROFILE:-<unset>}  AWS_REGION=''${AWS_REGION:-<unset>}"
         }
