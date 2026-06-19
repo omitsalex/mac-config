@@ -54,7 +54,7 @@
   obsidianSync = pkgs.writeShellScriptBin "obsidian-sync" ''
     set -euo pipefail
 
-    usage() { echo "Usage: obsidian-sync <push|pull> <s3-bucket> [vault-name]"; exit 1; }
+    usage() { echo "Usage: obsidian-sync <push|pull|clean> <s3-bucket> [vault-name]"; exit 1; }
 
     ACTION="''${1:-}"; [ -z "$ACTION" ] && usage
     BUCKET="''${2:-}"; [ -z "$BUCKET" ] && usage
@@ -81,6 +81,11 @@
         tar xzf "/tmp/obsidian-pull.tar.gz" -C "$(dirname "$VAULT_DIR")"
         echo "pulled ''${S3_PREFIX}/''${LATEST} → $VAULT_DIR/"
         rm -f "/tmp/obsidian-pull.tar.gz"
+        ;;
+      clean)
+        echo "deleting all objects under ''${S3_PREFIX}/"
+        aws s3 rm "''${S3_PREFIX}/" --recursive
+        echo "done"
         ;;
       *)
         usage
