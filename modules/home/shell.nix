@@ -221,19 +221,23 @@
           kubectl config view -o json 2>/dev/null | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
-users = {u['name']: u.get('user',{}).get('exec',{}) for u in d.get('users',[])}
+users = {}
+for u in d.get('users',[]):
+    ex = u.get('user',{}).get('exec',{})
+    users[u['name']] = ex
 for c in d.get('contexts',[]):
     cn = c['name']
-    un = c.get('context',{}).get('user','''')
+    un = c.get('context',{}).get('user', cn)
     ex = users.get(un,{})
-    env = {e['name']: e['value'] for e in ex.get('env',[])}
-    profile = env.get('AWS_PROFILE','-')
+    envs = {e['name']: e['value'] for e in ex.get('env',[])}
+    profile = envs.get('AWS_PROFILE','-')
     args = ex.get('args',[])
     region = 'us-east-1'
-    for i, a in enumerate(args):
-        if a == '--region' and i + 1 < len(args):
-            region = args[i + 1]
-    print(f'{cn}\t{profile}\t{region}')
+    for i in range(len(args)-1):
+        if args[i] == '--region':
+            region = args[i+1]
+            break
+    print(cn + '\t' + profile + '\t' + region)
 " 2>/dev/null
         }
         kctx() {                       # kctx [context]  (fzf over kubeconfig contexts)
