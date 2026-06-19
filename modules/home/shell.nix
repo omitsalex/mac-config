@@ -145,8 +145,10 @@
         }
         # List profiles with their regions (tab-separated) for fzf display
         _aws_profiles_with_region() {
-          _aws_profiles | while IFS= read -r p; do
-            local r; r=$(_aws_profile_region "$p")
+          local profiles p r
+          profiles=("''${(@f)$(_aws_profiles)}")
+          for p in "''${profiles[@]}"; do
+            r=$(_aws_profile_region "$p")
             printf '%s\t%s\n' "$p" "''${r:-(no region)}"
           done
         }
